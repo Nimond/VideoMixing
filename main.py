@@ -6,9 +6,9 @@ from os import listdir
 
 
 def mix(video_time, id):
-	streamer = VideoFileClip('streamer' + id + '.mp4').subclip(0, video_time)
-	game = VideoFileClip('game' + id + '.mp4').subclip(0, video_time)
-	player = VideoFileClip('player' + id + '.mp4').subclip(0, video_time)
+	streamer = VideoFileClip('streamer' + id + '.webm').subclip(0, video_time)
+	game = VideoFileClip('game' + id + '.webm').subclip(0, video_time)
+	player = VideoFileClip('player' + id + '.webm').subclip(0, video_time)
 	streamer.set_pos((0.2, 0.2, 'left', 'top'))
 	
 	video = CompositeVideoClip([game, streamer.resize(0.3).set_position(('right', 'top'), relative=True), player.resize(0.3).set_position(('left', 'top'), relative=True)])
