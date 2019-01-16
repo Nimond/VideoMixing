@@ -6,10 +6,16 @@ import os
 app = Flask(__name__)
 
 
+'''
+:5000/render?id={1,2,3...}
+trying to find:
+game{id}.webm
+streamer{id}.webm
+'''
 @app.route('/render')
 def render():
 	if request.args.get('id'):
-		if 'game' + request.args.get('id') + '.mp4' in os.listdir(r'C:\Python27'):
+		if 'game' + request.args.get('id') + '.webm' in os.listdir(r'C:\Python27'):
 			subprocess.Popen(["python", "main.py", "-t", "10", "-f", request.args.get('id')], close_fds=True)
 			
 			return "ok"
