@@ -13,7 +13,7 @@ def mix(video_time, id):
 	
 	video = CompositeVideoClip([game, streamer.resize(0.3).set_position(('right', 'top'), relative=True), \
 		]) # player.resize(0.3).set_position(('left', 'top'), relative=True)])
-	video.write_videofile('new' + str(video_time) + '.mp4')
+	video.write_videofile('new' + str(id) + '.mp4')
 	video.close()
 	streamer.close()
 	player.close()
@@ -24,19 +24,13 @@ def mix(video_time, id):
 if sys.argv:
 	print(sys.argv)
 	mix(int(sys.argv[2]), sys.argv[4])
-	print("cd C:\Python27", "&&", "python.exe", "upload.py", 
-														"--file=" + r"C:\Users\Melkor\Desktop\streamervideo" + r"\new10.mp4", 
-														"--title=" + sys.argv[4], 
-														"--description=" + sys.argv[4], 
-														"--keywords='1'",
-														"--category=22",
-														"--privacyStatus=public")
+
 														
 	subprocess.Popen(["python2", "upload.py", 
-														"--file=new10.mp4", 
+														"--file=new" + sys.argv[4] + ".mp4", 
 														"--title=" + sys.argv[4], 
 														"--description=" + sys.argv[4], 
-														"--keywords='1'",
+														"--keywords=1",
 														"--category=22",
 														"--privacyStatus=public"],
 														shell=True)

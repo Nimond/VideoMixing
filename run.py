@@ -20,7 +20,6 @@ def render():
 			
 			return "ok"
 		else:
-			print(os.listdir(r'C:\Users\Melkor\Desktop\streamervideo'), request.args.get('id'))
 			return "file not found"
 	else:
 		return "cant get id"
