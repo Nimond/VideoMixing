@@ -70,11 +70,16 @@ class ThreadedMixCV(Thread):
         fourcc = cv2.VideoWriter_fourcc(*'XVID') # 'M', 'P', 'E', 'G')
         out = cv2.VideoWriter('output' + self.id + '.avi', fourcc, 30.0, (1280, 720))
 
+        total = int(game.get(cv2.CAP_PROP_FRAME_COUNT))
         while True:
             streamer_flag, streamer_frame = streamer.read()
             game_flag, game_frame = game.read()
             player_flag, player_frame = player.read()
 
+            current = int(game.get(cv2.CAP_PROP_POS_FRAMES))
+
+            os.system('clear')
+            print(str(int(100*current/total))+'%')
 
             if not game_flag:
                 for cap in [streamer, player, game, out]:
