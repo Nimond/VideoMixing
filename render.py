@@ -1,6 +1,7 @@
 import os
 import sys
 import subprocess
+import requests
 from moviepy.editor import *
 from threading import Thread
 # -----
@@ -80,6 +81,14 @@ class ThreadedMixCV(Thread):
 
             os.system('clear')
             print(str(int(100*current/total))+'%')
+
+            if int(100*current/total) // 25 == 0:
+                params={
+                       'id': self.id, 
+                       'p': int(100*current/total)
+                       }
+
+                requests.get('http://localhost:5454/get', params=params)
 
             if not game_flag:
                 for cap in [streamer, player, game, out]:
