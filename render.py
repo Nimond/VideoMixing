@@ -50,10 +50,14 @@ class ThreadedMix(Thread):
 
 
 class ThreadedMixCV(Thread):
-    def __init__(self, id, duration):
+    def __init__(self, id):
         super(ThreadedMixCV, self).__init__()
         self.id = str(id)
-        self.duration = duration
+
+        clip = VideoFileClip("game" + self.id + ".mp4")
+        print( clip.duration )
+        self.duration = clip.duration
+        clip.close()
 
 
     def run(self):

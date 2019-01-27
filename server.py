@@ -8,9 +8,8 @@ app = Flask(__name__)
 
 @app.route('/render')
 def render():
-	duration = 10 # default
     if request.args.get('id'):
-        thread = ThreadedMixCV(request.args.get('id'), duration)
+        thread = ThreadedMixCV(request.args.get('id'))
         thread.start()
         return "OKEY"
     else:
