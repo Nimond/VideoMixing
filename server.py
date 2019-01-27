@@ -9,6 +9,7 @@ videos = {}
 
 @app.route('/render')
 def render():
+	if 'game{}.mp4'.format(request.args.get('id')) in os.listdir('.'):
         thread = ThreadedMixCV(request.args.get('id'))
         thread.start()
         
