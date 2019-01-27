@@ -135,7 +135,7 @@ class ThreadedMixCV(Thread):
 
 
     def upload(self):
-        subprocess.Popen([
+        r = subprocess.run([
                         "python2", "upload.py", 
                         "--file=new" + self.id + ".avi", 
                         "--title=" + self.id, 
@@ -143,6 +143,9 @@ class ThreadedMixCV(Thread):
                         "--keywords=1",
                         "--category=22",
                         "--privacyStatus=public"
-                    ],
-                        shell=True)
+                    ], stdout=subprocess.PIPE)
+        print(r.stdout)
+        print('\n\n')
+        print('https://www.youtube.com/watch?v=' + str(r.stdout)[2:-1].split('\\n')[-2])
+
         print(str(self.id) + ' complited')
