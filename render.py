@@ -77,10 +77,10 @@ class ThreadedMixCV(Thread):
                     cap.release()
 
                 print('writing audio ' + self.id)
-                self.mix_audio()
-                break #
+                self.mix_audio_ffmpeg()
                 print('uploading ' + self.id)
                 self.upload()
+                # TODO: delete video files
                 break
             
             player_frame = cv2.resize(player_frame, None, fx=0.25, fy=0.25)
@@ -105,14 +105,35 @@ class ThreadedMixCV(Thread):
         output_audio = CompositeAudioClip([streamer_audio, game_audio, player_audio])
 
         output.audio = output_audio
-        output.write_videofile("new" + self.id + ".mp4")
+        output.write_videofile("new" + self.id + ".avi", codec='mpeg4')
 
+
+    def mix_audio_ffmpeg(self):
+        s = 'ffmpeg -i output4.avi -i player4.mp4 -i game4.mp4 -i streamer4.mp4 -filter_complex "[1:a][2:a][3:a]amerge=inputs=3[a]" -map 0:v -map "[a]" -c:v copy -c:a libvorbis -ac 2 -shortest new' + self.id + '.avi'
+        print(s)
+        print(type(s))
+        subprocess.run([s], shell=True, check=True)
+        '''
+                        'ffmpeg',
+                        '-i','output4.avi',
+                        '-i','player4.mp4',
+                        '-i','game4.mp4',
+                        '-i','streamer4.mp4', 
+                        '-filter_complex','\"[1:a][2:a][3:a]amerge=inputs=3[a]\"',
+                        '-map','0:v',
+                        '-map','\"[a]\"',
+                        '-c:v','copy',
+                        '-c:','libvorbis',
+                        '-ac','2',
+                        '-shortest','new' + self.id + '.avi'
+                        ])
+        '''
 
 
     def upload(self):
         subprocess.Popen([
                         "python2", "upload.py", 
-                        "--file=new" + self.id + ".mp4", 
+                        "--file=new" + self.id + ".avi", 
                         "--title=" + self.id, 
                         "--description=" + self.id, 
                         "--keywords=1",

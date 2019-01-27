@@ -1,5 +1,5 @@
 from flask import Flask, request, json
-from render import ThreadedMix
+from render import ThreadedMixCV
 import os
 
 
@@ -8,8 +8,9 @@ app = Flask(__name__)
 
 @app.route('/render')
 def render():
+	duration = 10 # default
     if request.args.get('id'):
-        thread = ThreadedMix(request.args.get('id'), 10)
+        thread = ThreadedMixCV(request.args.get('id'), duration)
         thread.start()
         return "OKEY"
     else:
