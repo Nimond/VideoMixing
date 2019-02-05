@@ -2,10 +2,12 @@ import os
 import sys
 import subprocess
 import requests
+import datetime
 from moviepy.editor import *
 from threading import Thread
 # -----
 import cv2
+import json
 import numpy as np
 #               ^
 #testing OpenCV |
@@ -22,7 +24,7 @@ class ThreadedMix(Thread):
         id = self.id
         self.clips = []
         
-        streamer = VideoFileClip('streamer' + id + '.mp4').subclip(0, duration)
+        streamer = VideoFileClip('streamer.mp4').subclip(0, duration)
         self.clips.append(streamer)
         game = VideoFileClip('game' + id + '.mp4').subclip(0, duration)
         self.clips.append(game)
@@ -54,8 +56,8 @@ class ThreadedMixCV(Thread):
     def __init__(self, id):
         super(ThreadedMixCV, self).__init__()
         self.id = str(id)
-
-        clip = VideoFileClip("game" + self.id + ".mp4")
+        print('its ok')
+        clip = VideoFileClip(r"C:\Python27\directorconsole-flutter\video\game" + self.id + ".mp4")
         print( clip.duration )
         self.duration = clip.duration
         clip.close()
@@ -64,12 +66,24 @@ class ThreadedMixCV(Thread):
     def run(self):
         duration = self.duration
 
-        streamer = cv2.VideoCapture("./streamer" + self.id + ".mp4")
-        game = cv2.VideoCapture('./game' + self.id + '.mp4')
-        player = cv2.VideoCapture('./player' + self.id + '.mp4')
+        streamer = cv2.VideoCapture(r"C:\Python27\directorconsole-flutter\video\streamer.mp4")
+        game = cv2.VideoCapture(r"C:\Python27\directorconsole-flutter\video\game" + self.id + '.mp4')
+        player = cv2.VideoCapture(r"C:\Python27\directorconsole-flutter\video\player" + self.id + '.mp4')
 
         fourcc = cv2.VideoWriter_fourcc(*'XVID') # 'M', 'P', 'E', 'G')
-        out = cv2.VideoWriter('output' + self.id + '.avi', fourcc, 30.0, (1280, 720))
+        out = cv2.VideoWriter(r'C:\Python27\directorconsole-flutter\video\output' + self.id + '.avi', fourcc, 30.0, (1280, 720))
+
+        stime = str(datetime.datetime.now().hour) + ':' + str(datetime.datetime.now().minute)
+        print('sended')
+        params = {
+                          'place': 'Kremlin',
+                          'point': self.id,
+                          'stime': stime,
+                          'etime': str(datetime.datetime.now().hour) + ':' + str(datetime.datetime.now().minute),
+                          'date': '{}.{}.{}'.format(datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year),
+                          'url': 'null'
+                          }                         
+        requests.post('http://localhost:5000/add', json = json.dumps(params))
 
         total = int(game.get(cv2.CAP_PROP_FRAME_COUNT))
         while True:
@@ -79,16 +93,18 @@ class ThreadedMixCV(Thread):
 
             current = int(game.get(cv2.CAP_PROP_POS_FRAMES))
 
-            os.system('clear')
+            # os.system('clear')
             print(str(int(100*current/total))+'%')
 
+            '''
             if int(100*current/total) // 25 == 0:
                 params={
                        'id': self.id, 
                        'p': int(100*current/total)
                        }
 
-                requests.get('http://localhost:5454/get', params=params)
+                requests.get('http://localhost:5000/get', params=params)
+            '''
 
             if not game_flag:
                 for cap in [streamer, player, game, out]:
@@ -97,7 +113,16 @@ class ThreadedMixCV(Thread):
                 print('writing audio ' + self.id)
                 self.mix_audio_ffmpeg()
                 print('uploading ' + self.id)
-                self.upload()
+                url = self.upload()
+                params = {
+                          'place': 'Kremlin',
+                          'point': self.id,
+                          'stime': stime,
+                          'etime': str(datetime.datetime.now().hour) + ':' + str(datetime.datetime.now().minute),
+                          'date': '{}.{}.{}'.format(datetime.datetime.now().day, datetime.datetime.now().month, datetime.datetime.now().year),
+                          'url': url
+                         }
+                requests.get('http://127.0.0.1:5000/add', json = json.dumps(params))
                 # TODO: delete video files
                 break
             
@@ -115,43 +140,40 @@ class ThreadedMixCV(Thread):
 
 
     def mix_audio(self):
-        streamer_audio = VideoFileClip("streamer" + self.id + ".mp4").audio.subclip(0, self.duration)
-        game_audio = VideoFileClip("game" + self.id + ".mp4").audio.subclip(0, self.duration)
-        player_audio = VideoFileClip("player" + self.id + ".mp4").audio.subclip(0, self.duration)
+        streamer_audio = VideoFileClip(r"C:\Python27\directorconsole-flutter\video\streamer.mp4").audio.subclip(0, self.duration)
+        game_audio = VideoFileClip(r"C:\Python27\directorconsole-flutter\video\game" + self.id + ".mp4").audio.subclip(0, self.duration)
+        player_audio = VideoFileClip(r"C:\Python27\directorconsole-flutter\video\player" + self.id + ".mp4").audio.subclip(0, self.duration)
 
-        output = VideoFileClip("output" + self.id + ".avi")
+        output = VideoFileClip(r"C:\Python27\directorconsole-flutter\video\output" + self.id + ".avi")
         output_audio = CompositeAudioClip([streamer_audio, game_audio, player_audio])
 
         output.audio = output_audio
-        output.write_videofile("new" + self.id + ".avi", codec='mpeg4')
+        output.write_videofile(r"C:\Python27\directorconsole-flutter\video\new" + self.id + ".avi", codec='mpeg4')
 
 
     def mix_audio_ffmpeg(self):
-        s = 'ffmpeg -i output4.avi -i player4.mp4 -i game4.mp4 -i streamer4.mp4 -filter_complex "[1:a][2:a][3:a]amerge=inputs=3[a]" -map 0:v -map "[a]" -c:v copy -c:a libvorbis -ac 2 -shortest new' + self.id + '.avi'
-        print(s)
-        print(type(s))
-        subprocess.run([s], shell=True, check=True)
-        '''
+        # s = 'ffmpeg -i C:\\Python27\\directorconsole-flutter\\video\\output4.avi -i C:\\Python27\\directorconsole-flutter\\video\\player4.mp4 -i C:\\Python27\\directorconsole-flutter\\video\\game4.mp4 -i C:\\Python27\\directorconsole-flutter\\video\\streamer4.mp4 -filter_complex "[1:a][2:a][3:a]amerge=inputs=3[a]" -map 0:v -map "[a]" -c:v copy -c:a libvorbis -ac 2 -shortest C:\\Python27\\directorconsole-flutter\\video\\new' + self.id + '.avi'
+        # print(s)
+        subprocess.call([
                         'ffmpeg',
-                        '-i','output4.avi',
-                        '-i','player4.mp4',
-                        '-i','game4.mp4',
-                        '-i','streamer4.mp4', 
-                        '-filter_complex','\"[1:a][2:a][3:a]amerge=inputs=3[a]\"',
+                        '-i','C:\\Python27\\directorconsole-flutter\\video\\output'+self.id+'.avi',
+                        '-i','C:\\Python27\\directorconsole-flutter\\video\\player'+self.id+'.mp4',
+                        '-i','C:\\Python27\\directorconsole-flutter\\video\\game'+self.id+'.mp4',
+                        '-i','C:\\Python27\\directorconsole-flutter\\video\\streamer.mp4', 
+                        '-filter_complex', '[1:a][2:a][3:a]amerge=inputs=3[a]', 
                         '-map','0:v',
-                        '-map','\"[a]\"',
+                        '-map','[a]', 
                         '-c:v','copy',
-                        '-c:','libvorbis',
+                        '-c:a','libvorbis',
                         '-ac','2',
-                        '-shortest','new' + self.id + '.avi'
+                        '-shortest','C:\\Python27\\directorconsole-flutter\\video\\new' + self.id + '.avi'
                         ])
-        '''
 
 
     def upload(self):
         r = subprocess.run([
-                        "python2", "upload.py", 
-                        "--file=new" + self.id + ".avi", 
+                        "C:\\Python27\\python.exe", "upload.py", 
+                        "--file=C:\\Python27\\directorconsole-flutter\\video\\new" + self.id + ".avi", 
                         "--title=" + self.id, 
                         "--description=" + self.id, 
                         "--keywords=1",
@@ -159,7 +181,8 @@ class ThreadedMixCV(Thread):
                         "--privacyStatus=public"
                     ], stdout=subprocess.PIPE)
         print(r.stdout)
-        print('\n\n')
-        print('https://www.youtube.com/watch?v=' + str(r.stdout)[2:-1].split('\\n')[-2])
+        
+        print('https://www.youtube.com/watch?v=' + str(r.stdout).split('\\n')[-2][:-2])
+        return 'https://www.youtube.com/watch?v=' + str(r.stdout).split('\\n')[-2][:-2]
 
         print(str(self.id) + ' complited')
